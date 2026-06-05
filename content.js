@@ -816,6 +816,7 @@ function showToolbar() {
     const chip = document.createElement('span');
     chip.className = `prompt-chip ${p.id === selectedPlatform ? 'active' : ''}`;
     chip.textContent = p.name;
+    chip.setAttribute('data-platform', p.id);
     chip.addEventListener('click', (e) => {
       e.stopPropagation();
       selectedPlatform = p.id;
@@ -835,6 +836,7 @@ function showToolbar() {
   cancelBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     hideAiPromptBox();
+    hideButton();
   });
   
   const submitBtn = document.createElement('button');
@@ -852,17 +854,19 @@ function showToolbar() {
       const targetPlatform = platforms.find(p => p.id === selectedPlatform);
       const url = targetPlatform ? targetPlatform.url : 'https://chatgpt.com';
       
-      submitBtn.textContent = 'Copied & Opening...';
-      submitBtn.style.backgroundColor = '#10B981';
-      
-      setTimeout(() => {
-        submitBtn.textContent = 'Send';
-        submitBtn.style.backgroundColor = '#8B5CF6';
-        hideAiPromptBox();
-        hideButton();
-      }, 1000);
-      
-      chrome.runtime.sendMessage({ action: 'openTab', url: url });
+      chrome.storage.local.set({ pendingAiPrompt: aiClipboardText }, () => {
+        submitBtn.textContent = 'Copied & Opening...';
+        submitBtn.style.backgroundColor = '#10B981';
+        
+        setTimeout(() => {
+          submitBtn.textContent = 'Send';
+          submitBtn.style.backgroundColor = '#8B5CF6';
+          hideAiPromptBox();
+          hideButton();
+        }, 1000);
+        
+        chrome.runtime.sendMessage({ action: 'openTab', url: url });
+      });
     });
   };
   
@@ -872,6 +876,7 @@ function showToolbar() {
       submitAction(e);
     } else if (e.key === 'Escape') {
       hideAiPromptBox();
+      hideButton();
     }
   });
   
@@ -1474,6 +1479,13 @@ function cancelHideDelay() {
 
 // Process details about hovered segments under a point
 function processHover(x, y, altKey, shiftKey) {
+  if (shadowRoot) {
+    const promptBox = shadowRoot.querySelector('#hover-ai-prompt-box');
+    if (promptBox && promptBox.style.display === 'flex') {
+      return;
+    }
+  }
+
   let mode = 'BLOCK';
   if (altKey) {
     mode = shiftKey ? 'WORD' : 'SENTENCE';
@@ -1548,10 +1560,10 @@ function processHover(x, y, altKey, shiftKey) {
 function hideButton() {
   cancelHideDelay();
   
-  // Lock hide mechanism if prompt input currently has active focus inside Shadow DOM
+  // Lock hide mechanism if prompt input currently is visible inside Shadow DOM
   if (shadowRoot) {
     const promptBox = shadowRoot.querySelector('#hover-ai-prompt-box');
-    if (promptBox && promptBox.style.display === 'flex' && shadowRoot.activeElement) {
+    if (promptBox && promptBox.style.display === 'flex') {
       return;
     }
   }
@@ -1586,6 +1598,14 @@ document.addEventListener("mousemove", (e) => {
     return;
   }
   
+  // Lock hover state and exit early if the AI prompt box is currently open
+  if (shadowRoot) {
+    const promptBox = shadowRoot.querySelector('#hover-ai-prompt-box');
+    if (promptBox && promptBox.style.display === 'flex') {
+      return;
+    }
+  }
+  
   // High-performance early-exit: lock hover state if mouse is inside the safe zone
   if (currentCopyText && isMouseInSafeZone(e.clientX, e.clientY)) {
     cancelHideDelay();
@@ -1614,14 +1634,36 @@ window.addEventListener("keydown", (e) => {
     }
   }
 
-  // 2. Track modifier changes for selection granularity in real-time
-  if (e.key === 'Alt' || e.key === 'Shift') {
-    if (hoverEnabled) {
-      processHover(lastMouseX, lastMouseY, e.altKey, e.shiftKey);
+  // 2. Switch AI platform using 1, 2, 3 inside prompt box (1 = ChatGPT, 2 = Gemini, 3 = Claude)
+  if (shadowRoot) {
+    const promptBox = shadowRoot.querySelector('#hover-ai-prompt-box');
+    if (promptBox && promptBox.style.display === 'flex') {
+      const isInputFocused = shadowRoot.activeElement && shadowRoot.activeElement.id === 'hover-ai-input';
+      const isNumberKey = e.key === '1' || e.key === '2' || e.key === '3';
+      
+      if (isNumberKey && (!isInputFocused || e.altKey)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const platformMap = { '1': 'chatgpt', '2': 'gemini', '3': 'claude' };
+        const targetId = platformMap[e.key];
+        const chip = promptBox.querySelector(`.prompt-chip[data-platform="${targetId}"]`);
+        if (chip) {
+          chip.click();
+        }
+        return;
+      }
     }
   }
 
-  // 3. Skip hotkeys if typing in forms/input fields
+  // 3. Toggle extension ON/OFF with Ctrl+Shift+H (accessible globally, even from input fields)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'H' || e.key === 'h')) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleHoverFeature();
+    return;
+  }
+
+  // 3. Skip hotkeys and modifier granularity tracking if typing in forms/input fields
   const activeElement = document.activeElement;
   const isInInputField = (activeElement && (
     activeElement.tagName === 'INPUT' ||
@@ -1633,12 +1675,11 @@ window.addEventListener("keydown", (e) => {
   ));
   if (isInInputField) return;
 
-  // 4. Toggle extension ON/OFF with Ctrl+Shift+H
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'H' || e.key === 'h')) {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleHoverFeature();
-    return;
+  // 4. Track modifier changes for selection granularity in real-time
+  if (e.key === 'Alt' || e.key === 'Shift') {
+    if (hoverEnabled) {
+      processHover(lastMouseX, lastMouseY, e.altKey, e.shiftKey);
+    }
   }
 
   // 5. Copy active hover content instantly with standard C key
@@ -1690,6 +1731,19 @@ window.addEventListener("keyup", (e) => {
   if (e.key === 'Alt') {
     altKeyPressed = false;
   }
+  
+  // Skip modifier release event triggers if typing in forms/input fields
+  const activeElement = document.activeElement;
+  const isInInputField = (activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.contentEditable === 'true'
+  )) || (shadowRoot && shadowRoot.activeElement && (
+    shadowRoot.activeElement.tagName === 'INPUT' ||
+    shadowRoot.activeElement.tagName === 'TEXTAREA'
+  ));
+  if (isInInputField) return;
+
   if (e.key === 'Alt' || e.key === 'Shift') {
     if (hoverEnabled) {
       processHover(lastMouseX, lastMouseY, e.altKey, e.shiftKey);
@@ -1736,4 +1790,106 @@ function toggleHoverFeature() {
     }
   }
 }
+
+// Automatically detects if the page is ChatGPT, Gemini, or Claude and autofills pending prompt
+function attemptToFillPrompt() {
+  const hostname = window.location.hostname;
+  const isChatGPT = hostname.includes('chatgpt.com');
+  const isGemini = hostname.includes('gemini.google.com');
+  const isClaude = hostname.includes('claude.ai');
+  
+  if (!isChatGPT && !isGemini && !isClaude) return;
+  
+  chrome.storage.local.get("pendingAiPrompt", (res) => {
+    const prompt = res.pendingAiPrompt;
+    if (!prompt) return;
+    
+    // Clear immediately to prevent double-filling or re-filling on manual page refresh
+    chrome.storage.local.remove("pendingAiPrompt");
+    
+    let attempts = 0;
+    const maxAttempts = 30; // 15 seconds max (30 * 500ms)
+    
+    const interval = setInterval(() => {
+      attempts++;
+      
+      let inputElement = null;
+      
+      if (isChatGPT) {
+        inputElement = document.querySelector('#prompt-textarea') || 
+                       document.querySelector('textarea[placeholder*="ChatGPT"]') ||
+                       document.querySelector('textarea');
+      } else if (isGemini) {
+        inputElement = document.querySelector('rich-textarea div[contenteditable="true"]') ||
+                       document.querySelector('div[contenteditable="true"][role="textbox"]') ||
+                       document.querySelector('div[contenteditable="true"]') ||
+                       document.querySelector('textarea');
+      } else if (isClaude) {
+        inputElement = document.querySelector('div[contenteditable="true"]') ||
+                       document.querySelector('.ProseMirror') ||
+                       document.querySelector('textarea');
+      }
+      
+      if (inputElement) {
+        clearInterval(interval);
+        
+        // Focus input element
+        inputElement.focus();
+        
+        // Try executing native browser paste command (best compatibility for web framework SPAs)
+        let success = false;
+        try {
+          // Select all existing placeholder content if any
+          document.execCommand('selectAll', false, null);
+          success = document.execCommand('insertText', false, prompt);
+        } catch (e) {
+          console.warn("execCommand insertText failed:", e);
+        }
+        
+        // Fallback to manual text injection if execCommand did not take effect
+        const currentVal = inputElement.tagName === 'TEXTAREA' || inputElement.tagName === 'INPUT'
+          ? inputElement.value
+          : inputElement.innerText;
+          
+        if (!success || !currentVal || currentVal.trim() !== prompt.trim()) {
+          if (inputElement.tagName === 'TEXTAREA' || inputElement.tagName === 'INPUT') {
+            inputElement.value = prompt;
+          } else {
+            inputElement.innerText = prompt;
+          }
+          
+          // Trigger change detection events for React/Vue
+          ['input', 'change'].forEach(eventName => {
+            const event = new Event(eventName, { bubbles: true, cancelable: true });
+            inputElement.dispatchEvent(event);
+          });
+        }
+        
+        // Trigger generic change detection events anyway to ensure send button state re-evaluates
+        ['input', 'change'].forEach(eventName => {
+          const event = new Event(eventName, { bubbles: true, cancelable: true });
+          inputElement.dispatchEvent(event);
+        });
+        
+        // Move selection cursor to the end of input
+        try {
+          const range = document.createRange();
+          range.selectNodeContents(inputElement);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (e) {}
+        
+        console.log("Hover Text Copier: Pending AI prompt autofilled successfully.");
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.warn("Hover Text Copier: Input element not found after polling.");
+      }
+    }, 500);
+  });
+}
+
+// Run prompt autofill handler immediately on script execution
+attemptToFillPrompt();
 
