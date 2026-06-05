@@ -1,182 +1,83 @@
-# Hover Text Copier
+# Hover Text Copier (v1.1)
 
-A Chrome extension that allows you to easily copy text from web pages by simply hovering over text elements. Perfect for quickly copying text without having to select it manually.
+A premium, high-performance Chrome extension that allows you to copy text elements from any webpage by simply hovering. Designed for researchers, developers, and writers to copy blocks, sentences, or words with pixel-perfect precision and ZERO layout interference.
 
-## Features
+---
 
-- 🖱️ **Hover to Copy**: Simply hover over text elements to see a copy button
-- ⌨️ **Keyboard Shortcut**: Toggle the extension on/off with `Ctrl+Shift+H` (or `Cmd+Shift+H` on Mac)
-- 🔄 **Cross-Tab Sync**: State changes are synchronized across all open tabs
-- 📱 **Smart Detection**: Automatically detects suitable text elements while avoiding buttons, inputs, and other interactive elements
-- ✅ **Visual Feedback**: Copy button changes to checkmark when text is copied
-- 🔔 **Status Notifications**: Shows current state when toggling or switching tabs
-- 🎯 **Intelligent Positioning**: Copy button appears at the top-right of text elements
-- 🚫 **Input Field Safe**: Keyboard shortcuts don't interfere when typing in forms
+## 🚀 Key Features
 
-## Installation
+- 🖱️ **Hover-to-Copy**: Hover over text elements to reveal a floating, premium copy button.
+- 📐 **Geometry-Union Safe Zone**: High-performance $O(1)$ viewport containment checks prevent button flickering.
+- 📑 **Multi-Granularity Parsing**:
+  - **Block Mode** (Default): Copy the entire containing element.
+  - **Sentence Mode** (`Hold Alt`): Extracts the sentence under the cursor using punctuation detection.
+  - **Word Mode** (`Alt + Shift`): Extracts the exact word under the cursor.
+- 🕒 **Visual Mode Badge**: Shows the active granularity mode (`BLOCK`, `SENTENCE`, `WORD`) centered directly above the highlighted selection.
+- 📜 **Page-level History Dropdown (🕒)**: Access, copy, and clear your last 20 copied clips directly from the floating page toolbar.
+- ⚙️ **Control Center Popup**: Elegant charcoal UI to configure copying formats:
+  - **Plain Text**: Standard unformatted string.
+  - **Markdown**: Formats tags, headings, and resolves context-aware links (e.g. `[text](url)`).
+  - **HTML Markup**: Extracts the exact outer HTML of elements (or cloned range elements for sub-selections).
+  - **Append Page URL**: Appends source page details to the copied clipboard text.
+- ⚡ **Instant Keyboard Action**: Press **`C`** on your keyboard while hovering to copy immediately.
+- 🔒 **Input Safeguards**: Keyboard shortcuts and overlays automatically bypass inputs, forms, and contentEditable regions.
+- 🎨 **Closed Shadow DOM Isolation**: All UI elements (toolbar, badges, highlights, dropdowns) are encapsulated inside a closed shadow root, ensuring zero stylesheet leakage or conflicts with hosting websites.
 
-1. Download or clone this repository
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top right
-4. Click "Load unpacked" and select the extension folder
-5. The extension icon should appear in your browser toolbar
+---
 
-## Usage
+## 🛠️ Installation
 
-### Basic Usage
-1. **Enable the extension** by clicking the extension icon in the toolbar or using the keyboard shortcut
-2. **Hover over text** on any webpage
-3. **Click the clipboard button** (📋) that appears to copy the text
-4. The button will briefly show a checkmark (✅) to confirm the copy
+1. **Download / Clone** the repository folder.
+2. Open Google Chrome and navigate to `chrome://extensions/`.
+3. Toggle **Developer mode** in the top-right corner.
+4. Click **Load unpacked** in the top-left corner.
+5. Select the `Hover-Text-Copier` folder.
+6. Pin the extension to your toolbar for easy access.
 
-### Keyboard Shortcut
-- **Windows/Linux**: `Ctrl + Shift + H`
-- **Mac**: `Cmd + Shift + H`
+---
 
-The shortcut toggles the extension on/off and works on any webpage (except when typing in input fields).
+## ⌨️ Shortcuts Cheat-Sheet
 
-### Visual Indicators
-- **Green notification**: "Hover Select: ON" - Extension is active
-- **Red notification**: "Hover Select: OFF" - Extension is disabled
-- **"(synced)" label**: Indicates the state change came from another tab
+| Action | Shortcut | Description |
+|---|---|---|
+| **Toggle Extension** | `Ctrl + Shift + H` | Turns the hover engine ON or OFF. |
+| **Sentence Mode** | `Hold Alt` | Highlights the sentence under the cursor. |
+| **Word Mode** | `Alt + Shift` | Highlights the word under the cursor. |
+| **Instant Copy** | `Press C` | Copies highlighted text immediately. |
 
-## How It Works
+*Note: The extension automatically overrides Windows Chrome's default Alt-key menu focus behavior and Wikipedia's accesskeys when active, ensuring smooth hotkey delivery.*
 
-### Smart Text Detection
-The extension intelligently identifies text elements suitable for copying by:
-- ✅ Including: paragraphs, divs, spans, headings, and other text containers
-- ❌ Excluding: buttons, inputs, textareas, links, images, and SVGs
-- 📏 Filtering: Elements with less than 1 character or very small fonts
-- 👁️ Checking: Element visibility (hidden or transparent elements are ignored)
+---
 
-### Parent Element Traversal
-When you hover over an element, the extension checks:
-1. The element itself
-2. Up to 2 parent elements
+## 📂 Project Structure
 
-This allows hovering over child elements (like spans or emphasized text) to target their parent containers.
+- [manifest.json](file:///e:/Hover-Text-Copier/manifest.json) — Extension manifest (MV3) defining permissions, scripts, and popup.
+- [content.js](file:///e:/Hover-Text-Copier/content.js) — The core background/injected script that builds the viewport overlay inside a closed Shadow DOM, tracks coordinates, manages keyboard shortcuts, and parses text granularity.
+- [popup.html](file:///e:/Hover-Text-Copier/popup.html) — The sleek, solid charcoal popup UI for configuring format options.
+- [popup.js](file:///e:/Hover-Text-Copier/popup.js) — Binds configuration elements to `chrome.storage.local`.
 
-### Cross-Tab Synchronization
-- State changes are saved to Chrome storage
-- All open tabs automatically sync when you toggle the extension
-- Notifications appear on all tabs when state changes
-- Tab focus shows current state for awareness
+---
 
-## File Structure
+## 🛠️ Advanced Customization
 
-```
-hoverSelect/
-├── manifest.json       # Extension configuration
-├── content.js         # Main functionality (injected into web pages)
-├── popup.html        # Extension popup interface
-├── popup.js          # Popup functionality
-└── README.md         # This file
-```
-
-## Technical Details
-
-### Permissions Required
-- `storage`: For saving extension state across sessions
-- `<all_urls>`: For content script injection on all websites
-
-### Browser Compatibility
-- Chrome (Manifest V3)
-- Chromium-based browsers (Edge, Brave, etc.)
-
-### Performance Considerations
-- Lightweight content script (< 10KB)
-- Event listeners are efficiently managed
-- Mouse position tracking only when needed
-- Smart element caching to avoid repeated DOM queries
-
-## Customization
-
-### Modifying Text Length Threshold
-In `content.js`, find the `isTextElement` function and modify:
+### Minimum Text Selection Length
+To adjust the minimum text length considered valid for hover selections, modify the threshold check inside `isTextElement` in [content.js](file:///e:/Hover-Text-Copier/content.js):
 ```javascript
-if (text.length < 1) return false; // Change minimum character count
+const text = el.innerText?.trim() || "";
+if (text.length < 1) return false; // Change 1 to your minimum limit
 ```
 
-### Changing Font Size Threshold
+### Delay Buffers for Cursor Transition
+To adjust the timing buffer before the copy button hides (giving you time to move the cursor to it), update the delay millisecond value inside `hideButtonWithDelay` in [content.js](file:///e:/Hover-Text-Copier/content.js):
 ```javascript
-parseFloat(style.fontSize) < 10 // Change minimum font size (pixels)
+setTimeout(() => {
+  hideButton();
+}, 400); // Set to your preferred time in milliseconds
 ```
 
-### Adjusting Button Position
-In the `showButton` function:
-```javascript
-hoverButton.style.left = `${window.scrollX + rect.right - 40}px`; // Change offset from right edge
-```
+---
 
-### Modifying Keyboard Shortcut
-In the keydown event listener:
-```javascript
-if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'H' || e.key === 'h')) {
-  // Change 'H' to your preferred key
-}
-```
+## 🛡️ Privacy & Performance
 
-## Troubleshooting
-
-### Keyboard Shortcut Not Working
-1. Check browser console for debug messages
-2. Ensure you're not typing in an input field
-3. Try both uppercase and lowercase versions of the shortcut
-4. Check if another extension is using the same shortcut
-
-### Button Not Appearing
-1. Make sure the extension is enabled (check notification)
-2. Verify you're hovering over text elements (not images or buttons)
-3. Check if the text element has sufficient content (> 1 character)
-4. Ensure the element is visible (not hidden or transparent)
-
-### Cross-Tab Sync Issues
-1. Refresh affected tabs if sync seems stuck
-2. Check browser console for storage-related errors
-3. Try disabling and re-enabling the extension
-
-### Extension Not Loading
-1. Verify all files are in the correct directory
-2. Check `manifest.json` for syntax errors
-3. Reload the extension in `chrome://extensions/`
-4. Check browser console for loading errors
-
-## Development
-
-### Debug Mode
-The extension includes comprehensive logging. Open browser DevTools (F12) and check the Console tab for:
-- Extension initialization messages
-- Keyboard shortcut detection
-- Storage sync events
-- Element detection details
-
-### Testing
-1. Test on various websites with different layouts
-2. Verify keyboard shortcuts work across different tab contexts
-3. Check cross-tab synchronization
-4. Test with different text elements and sizes
-
-## Privacy
-
-This extension:
-- ✅ Only processes text content when you hover over elements
-- ✅ Does not send any data to external servers
-- ✅ Only stores extension state locally in Chrome storage
-- ✅ Does not track browsing history or personal information
-
-## Contributing
-
-Feel free to submit issues, fork the repository, and create pull requests for any improvements.
-
-## License
-
-This project is open source and available under the [MIT License](https://opensource.org/licenses/MIT).
-
-## Version History
-
-### v1.0
-- Initial release with basic hover-to-copy functionality
-- Keyboard shortcut support (`Ctrl+Shift+H`)
-- Cross-tab state synchronization
-- Smart text element detection
-- Visual feedback notifications
+- **100% Client-Side**: No telemetry or network requests are ever made. Your copy history is stored purely in your browser's private local extension storage (`chrome.storage.local`).
+- **High Performance**: Employs early-exit cursor coordinate containment checks to prevent layout thrashing and maintain 60FPS.

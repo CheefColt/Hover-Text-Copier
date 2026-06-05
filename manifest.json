@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Hover Text Copier",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Hover and copy visible text from readable elements.",
   "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",

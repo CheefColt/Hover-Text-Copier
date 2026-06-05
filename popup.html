@@ -1,27 +1,338 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <style>
     body {
-      font-family: sans-serif;
-      margin: 10px;
-      width: 15rem;
-      text-align: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+      width: 280px;
+      background-color: #1A1A2E;
+      color: #E0E0E0;
+      box-sizing: border-box;
     }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 5px;
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #2A2A3E;
+      padding-bottom: 10px;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-icon {
+      font-size: 20px;
+    }
+    .logo-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 0.5px;
+    }
+    .version {
+      font-size: 10px;
+      color: #808090;
+      font-weight: 500;
+    }
+    
+    /* Toggle Switch Section */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #2A2A3E;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #3A3A4E;
+    }
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
       cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #3A3A4E;
+      transition: 0.2s ease;
+      border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #E0E0E0;
+      transition: 0.2s ease;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #10B981;
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+      background-color: #FFFFFF;
+    }
+    
+    /* Format Selector Section */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #808090;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+    .format-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .format-label {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background-color: #222238;
+      border: 1px solid #2A2A3E;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .format-label:hover {
+      background-color: #2A2A3E;
+      border-color: #3A3A4E;
+    }
+    .format-label input {
+      margin-right: 10px;
+      accent-color: #10B981;
+      cursor: pointer;
+    }
+    .format-details {
+      display: flex;
+      flex-direction: column;
+    }
+    .format-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+    .format-desc {
+      font-size: 10px;
+      color: #808090;
+      margin-top: 2px;
+    }
+    
+    /* Keyboard Shortcuts Helper */
+    .shortcuts-box {
+      border: 1px dashed #2A2A3E;
+      border-radius: 8px;
+      padding: 12px;
+      background-color: #1E1E34;
+    }
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+    .shortcut-row:last-child {
+      margin-bottom: 0;
+    }
+    .shortcut-name {
+      color: #A0A0B0;
+    }
+    .shortcut-key {
+      background-color: #2A2A3E;
+      color: #10B981;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      border: 1px solid #3A3A4E;
+    }
+    
+    /* Expanded settings styles */
+    .select-input {
+      width: 100%;
+      background-color: #222238;
+      border: 1px solid #2A2A3E;
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 10px 12px;
+      font-size: 12px;
+      box-sizing: border-box;
+      outline: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+    .select-input:focus {
+      border-color: #10B981;
+    }
+    .text-input {
+      width: 100%;
+      background-color: #222238;
+      border: 1px solid #2A2A3E;
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 10px 12px;
+      font-size: 12px;
+      box-sizing: border-box;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.2s ease;
+    }
+    .text-input:focus {
+      border-color: #10B981;
+    }
+    .setting-group {
+      margin-bottom: 20px;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .setting-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #FFFFFF;
     }
   </style>
 </head>
 <body>
-  <h1> Hover Select </h1>
-  <button id="toggleBtn">Loading...</button>
+  <div class="header">
+    <div class="logo-container">
+      <span class="logo-icon">📋</span>
+      <span class="logo-text">Hover Copy</span>
+    </div>
+    <span class="version">v1.1</span>
+  </div>
+
+  <div class="toggle-row">
+    <span class="toggle-label">Enable Hover Copy</span>
+    <label class="switch">
+      <input type="checkbox" id="toggleBtn">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="section-title">Copy Format</div>
+  <div class="format-options">
+    <label class="format-label">
+      <input type="radio" name="format" value="plain" checked>
+      <div class="format-details">
+        <span class="format-name">Plain Text</span>
+        <span class="format-desc">Standard unformatted text content</span>
+      </div>
+    </label>
+    <label class="format-label">
+      <input type="radio" name="format" value="markdown">
+      <div class="format-details">
+        <span class="format-name">Markdown</span>
+        <span class="format-desc">Convert headings, links, bold, code</span>
+      </div>
+    </label>
+    <label class="format-label">
+      <input type="radio" name="format" value="html">
+      <div class="format-details">
+        <span class="format-name">HTML Markup</span>
+        <span class="format-desc">Preserve complete HTML nodes</span>
+      </div>
+    </label>
+    <label class="format-label">
+      <input type="radio" name="format" value="source">
+      <div class="format-details">
+        <span class="format-name">Append Page URL</span>
+        <span class="format-desc">Append a reference link to the source</span>
+      </div>
+    </label>
+  </div>
+
+  <div class="setting-group" style="margin-top: 8px;">
+    <div class="setting-row">
+      <span class="setting-label">Clean Code Blocks</span>
+      <label class="switch">
+        <input type="checkbox" id="cleanCodeBtn">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section-title">Regex Extraction</div>
+  <div class="setting-group">
+    <select id="regexModeSelect" class="select-input">
+      <option value="none">None (Copy Full Selection)</option>
+      <option value="email">Extract Email Addresses</option>
+      <option value="url">Extract URLs / Links</option>
+      <option value="ip">Extract IP Addresses</option>
+      <option value="uuid">Extract UUIDs</option>
+      <option value="custom">Custom RegExp Pattern</option>
+    </select>
+    
+    <div id="customRegexContainer" style="display: none;">
+      <input type="text" id="customRegexInput" class="text-input" placeholder="e.g. [A-Z]+[0-9]+">
+      
+      <div class="setting-row">
+        <span class="setting-label" style="font-size: 11px; color: #808090;">Fallback on No Match</span>
+        <label class="switch">
+          <input type="checkbox" id="regexFallbackBtn" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Shortcuts Cheat-Sheet</div>
+  <div class="shortcuts-box">
+    <div class="shortcut-row">
+      <span class="shortcut-name">Toggle Extension</span>
+      <span class="shortcut-key">Ctrl+Shift+H</span>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-name">Sentence Selection</span>
+      <span class="shortcut-key">Hold Alt</span>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-name">Word Selection</span>
+      <span class="shortcut-key">Alt + Shift</span>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-name">Copy Hovered Item</span>
+      <span class="shortcut-key">Press C</span>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-name">Ask AI / Prompt Box</span>
+      <span class="shortcut-key">Press A</span>
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>
