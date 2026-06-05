@@ -1604,7 +1604,7 @@ window.addEventListener("blur", () => {
 });
 
 // Monitor modifier key changes to update selection granularity in real-time
-document.addEventListener("keydown", (e) => {
+window.addEventListener("keydown", (e) => {
   // 1. Prevent default menu behaviors for Alt key immediately if extension is active
   if (e.key === 'Alt') {
     altKeyPressed = true;
@@ -1657,12 +1657,36 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault();
         e.stopPropagation();
         showAiPromptBox();
+        return;
       }
     }
   }
-});
 
-document.addEventListener("keyup", (e) => {
+  // 7. OCR active element instantly with standard O key
+  if (hoverEnabled && (e.key === 'O' || e.key === 'o') && !e.ctrlKey && !e.metaKey) {
+    const rawElement = findTextElementUnderPoint(lastMouseX, lastMouseY);
+    if (rawElement) {
+      let el = getValidTarget(rawElement);
+      if (!el) el = rawElement;
+      
+      if (el) {
+        e.preventDefault();
+        e.stopPropagation();
+        currentTarget = el;
+        isOcrTarget = true;
+        const rects = [el.getBoundingClientRect()];
+        drawHighlight(rects, 'OCR');
+        positionCopyButton(rects, 'OCR');
+        updateActiveRects(rects);
+        updateModeBadge('OCR');
+        triggerOcrCapture();
+        return;
+      }
+    }
+  }
+}, true);
+
+window.addEventListener("keyup", (e) => {
   if (e.key === 'Alt') {
     altKeyPressed = false;
   }
@@ -1671,7 +1695,7 @@ document.addEventListener("keyup", (e) => {
       processHover(lastMouseX, lastMouseY, e.altKey, e.shiftKey);
     }
   }
-});
+}, true);
 
 // Close history dropdown or prompt box when clicking outside of it on the page
 document.addEventListener("click", (e) => {

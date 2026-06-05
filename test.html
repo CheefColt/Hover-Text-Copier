@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hover Text Copier Test Suite</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0F0F1A;
+      color: #E2E8F0;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #38BDF8;
+      border-bottom: 2px solid #1E293B;
+      padding-bottom: 10px;
+    }
+    .test-card {
+      background-color: #1E1E2F;
+      border: 1px solid #2D2D44;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .test-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #A78BFA;
+      margin-top: 0;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .overlay-container {
+      position: relative;
+      background-color: #131324;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px dashed #4B5563;
+    }
+    .overlay-blocker {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 0, 0, 0.0); /* completely transparent */
+      z-index: 10;
+      cursor: not-allowed;
+    }
+    pre {
+      background-color: #131324;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Consolas', Courier, monospace;
+      overflow-x: auto;
+      margin: 0;
+    }
+    .lineno {
+      color: #4B5563;
+      margin-right: 12px;
+      user-select: none;
+    }
+    canvas {
+      border: 1px solid #4B5563;
+      border-radius: 8px;
+      display: block;
+      margin-top: 10px;
+    }
+    .instruction {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-top: 8px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hover Text Copier Test Suite</h1>
+  <p>Use this page to verify all implemented premium features of the Hover Text Copier extension.</p>
+
+  <!-- Scenario 1: Overlay Blocker Bypass -->
+  <div class="test-card">
+    <div class="test-title">🛡️ 1. Overlay Blocker Bypass Test</div>
+    <p>Below is a text block covered by an invisible blocker overlay that normally blocks hover events.</p>
+    <div class="overlay-container">
+      <div class="overlay-blocker"></div>
+      <span style="font-size: 15px; font-weight: bold; color: #F472B6;">[SECRET TEXT UNDER THE OVERLAY]</span>
+      <p style="margin-bottom: 0;">This text is covered by a transparent blocker. If the bypass works, hovering here will highlight and let you copy this message!</p>
+    </div>
+    <div class="instruction">Hover over the pink secret text or the text inside the dashed box to test.</div>
+  </div>
+
+  <!-- Scenario 2: Smart Code Block Formatter -->
+  <div class="test-card">
+    <div class="test-title">💻 2. Smart Code Block Formatter Test</div>
+    <p>Hovering over this code block in Block Mode should strip the line numbers and copy clean indented code.</p>
+    <pre class="line-numbers"><code><span class="lineno">1</span>const express = require('express');
+<span class="lineno">2</span>const app = express();
+<span class="lineno">3</span>
+<span class="lineno">4</span>app.get('/', (req, res) => {
+<span class="lineno">5</span>  res.send('Bypass and Code formatting works!');
+<span class="lineno">6</span>});</code></pre>
+    <div class="instruction">Copy the code block above and paste it in a text editor to confirm line numbers are stripped.</div>
+  </div>
+
+  <!-- Scenario 3: AI Prompt Widget -->
+  <div class="test-card">
+    <div class="test-title">✨ 3. Interactive AI Prompt Widget Test</div>
+    <p id="ai-test-text">This paragraph is a test target for checking the AI prompt box functionality. Press 'A' or click the Sparkles button next to the copy icon while hovering.</p>
+    <div class="instruction">Hover here, press A, type a prompt (e.g., "translate to Spanish"), and press Enter to test redirect.</div>
+  </div>
+
+  <!-- Scenario 4: Regex Extraction Filters -->
+  <div class="test-card">
+    <div class="test-title">🔍 4. Regex Extraction Filter Test</div>
+    <p>Below is a text containing various patterns. Configure the filter in the popup before copying.</p>
+    <div style="background-color: #131324; padding: 16px; border-radius: 8px;">
+      Email: support@example.com, admin@copier.io
+      URLs: http://localhost:8080 or https://chrome.google.com
+      UUID: d3b07384-d113-11e2-8b8b-0800200c9a66
+    </div>
+    <div class="instruction">Toggle regex modes (Emails, URLs, UUIDs) in the control popup and verify only matches are copied.</div>
+  </div>
+
+  <!-- Scenario 5: Canvas OCR -->
+  <div class="test-card">
+    <div class="test-title">📷 5. Canvas OCR Capture Test</div>
+    <p>The canvas below renders text dynamically. Hover over it or press 'O' to run local OCR extraction.</p>
+    <canvas id="test-canvas" width="400" height="150"></canvas>
+    <div class="instruction">Hover over the canvas, click copy (or press C or O), and verify the scanning spinner runs and text is extracted.</div>
+  </div>
+
+  <script>
+    // Draw test text on canvas dynamically
+    window.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('test-canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Draw background
+      ctx.fillStyle = '#131324';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw text
+      ctx.fillStyle = '#38BDF8';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('OCR LOCAL EXTRACTION', 20, 50);
+      
+      ctx.fillStyle = '#F8FAFC';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Success: Local OCR is running!', 20, 95);
+      
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = 'italic 12px sans-serif';
+      ctx.fillText('Engine: Tesseract.js v5.1.0 Offline', 20, 130);
+    });
+  </script>
+</body>
+</html>
