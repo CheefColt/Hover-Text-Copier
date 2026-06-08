@@ -17,6 +17,7 @@ let altKeyPressed = false;      // Track Alt key press state to prevent Windows 
 
 // Cached settings synchronized from Chrome storage
 let settings = {
+  copyFormat: 'plain',
   cleanCodeBlocks: true,
   regexMode: 'none',
   customRegexPattern: '',
@@ -324,6 +325,11 @@ function showToolbar() {
       align-items: center;
       gap: 8px;
     }
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
     .toolbar-label {
       color: #E0E0E0;
       font-size: 13px;
@@ -449,27 +455,33 @@ function showToolbar() {
       border: 1px solid #8B5CF6;
     }
     
-    /* Toolbar clock button */
-    .history-btn {
+    /* Toolbar action buttons */
+    .toolbar-icon-btn {
       background: none;
       border: none;
       color: #A0A0B0;
       cursor: pointer;
-      font-size: 14px;
-      padding: 4px;
+      padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
-      transition: color 0.2s ease, background-color 0.2s ease;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
     }
-    .history-btn:hover {
+    .toolbar-icon-btn:hover {
+      color: #10B981;
+      background-color: #2A2A3E;
+      transform: translateY(-1px);
+    }
+    .toolbar-icon-btn.active {
       color: #10B981;
       background-color: #2A2A3E;
     }
-    .history-btn.active {
-      color: #10B981;
-      background-color: #2A2A3E;
+    .toolbar-icon-btn svg {
+      width: 15px;
+      height: 15px;
     }
     
     /* History Dropdown Container */
@@ -477,8 +489,8 @@ function showToolbar() {
       position: fixed;
       top: 56px;
       right: 12px;
-      width: 220px;
-      max-height: 250px;
+      width: 260px;
+      max-height: 320px;
       background-color: #1A1A2E;
       border: 1px solid #2A2A3E;
       border-radius: 12px;
@@ -487,11 +499,12 @@ function showToolbar() {
       flex-direction: column;
       overflow-y: auto;
       z-index: 2147483647;
-      padding: 8px;
+      padding: 10px;
       box-sizing: border-box;
       pointer-events: auto;
       font-family: system-ui, -apple-system, sans-serif;
       animation: dropdownSlide 0.2s ease-out forwards;
+      gap: 8px;
     }
     @keyframes dropdownSlide {
       from {
@@ -521,17 +534,17 @@ function showToolbar() {
     
     /* History Dropdown Items */
     .history-item {
-      padding: 8px 10px;
-      border-radius: 6px;
+      padding: 10px 12px;
+      border-radius: 8px;
       background-color: #2A2A3E;
       border: 1px solid transparent;
       color: #E0E0E0;
       font-size: 11px;
       cursor: pointer;
-      margin-bottom: 6px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.45;
+      margin-bottom: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
       transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
     }
     .history-item:hover {
@@ -550,7 +563,7 @@ function showToolbar() {
       color: #808090;
       font-size: 11px;
       text-align: center;
-      padding: 16px 0;
+      padding: 20px 12px;
       font-style: italic;
     }
     .history-title {
@@ -559,8 +572,8 @@ function showToolbar() {
       color: #808090;
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      margin-bottom: 8px;
-      padding: 0 4px;
+      margin-bottom: 2px;
+      padding: 0 2px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -577,6 +590,152 @@ function showToolbar() {
     }
     .history-clear-btn:hover {
       text-decoration: underline;
+    }
+    .settings-panel {
+      position: fixed;
+      top: 56px;
+      right: 12px;
+      width: 280px;
+      max-height: min(70vh, 420px);
+      background-color: #1A1A2E;
+      border: 1px solid #2A2A3E;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 2147483647;
+      padding: 12px;
+      box-sizing: border-box;
+      pointer-events: auto;
+      font-family: system-ui, -apple-system, sans-serif;
+      animation: dropdownSlide 0.2s ease-out forwards;
+      gap: 12px;
+    }
+    .settings-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    .settings-panel::-webkit-scrollbar-track {
+      background: #1A1A2E;
+    }
+    .settings-panel::-webkit-scrollbar-thumb {
+      background: #3A3A4E;
+      border-radius: 3px;
+    }
+    .settings-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 700;
+      color: #808090;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 0 2px;
+    }
+    .settings-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .settings-block {
+      background-color: #222238;
+      border: 1px solid #2A2A3E;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .settings-block-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin: 0;
+    }
+    .settings-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background-color: #2A2A3E;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .settings-option:hover {
+      background-color: #30304B;
+      border-color: #3A3A4E;
+    }
+    .settings-option input {
+      margin: 0;
+      accent-color: #10B981;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .settings-option-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .settings-option-copy strong {
+      font-size: 12px;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .settings-option-copy span {
+      font-size: 10px;
+      color: #9292A8;
+      line-height: 1.35;
+    }
+    .settings-inline-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .settings-inline-row .switch {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .settings-inline-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+    .settings-inline-label strong {
+      font-size: 12px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+    .settings-inline-label span {
+      font-size: 10px;
+      color: #9292A8;
+      line-height: 1.35;
+    }
+    .settings-select,
+    .settings-input {
+      width: 100%;
+      background-color: #2A2A3E;
+      border: 1px solid #3A3A4E;
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 9px 10px;
+      font-size: 12px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .settings-select:focus,
+    .settings-input:focus {
+      border-color: #10B981;
+    }
+    .settings-custom-regex {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
     }
     
     /* AI Sparkles Button styling */
@@ -720,20 +879,55 @@ function showToolbar() {
   leftSec.className = 'toolbar-left';
 
   const histBtn = document.createElement('button');
-  histBtn.className = 'history-btn';
+  histBtn.className = 'toolbar-icon-btn';
   histBtn.id = 'history-toggle-btn';
   histBtn.title = 'View History';
-  histBtn.textContent = '🕒';
+  histBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"></path>
+      <path d="M9 7h6"></path>
+      <path d="M9 11h4"></path>
+      <path d="M17 3v5"></path>
+      <path d="M14.5 5.5H19.5"></path>
+    </svg>
+  `;
   histBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleHistoryDropdown();
+  });
+
+  const settingsBtn = document.createElement('button');
+  settingsBtn.className = 'toolbar-icon-btn';
+  settingsBtn.id = 'settings-toggle-btn';
+  settingsBtn.title = 'Quick Settings';
+  settingsBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="4" y1="21" x2="4" y2="14"></line>
+      <line x1="4" y1="10" x2="4" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12" y2="3"></line>
+      <line x1="20" y1="21" x2="20" y2="16"></line>
+      <line x1="20" y1="12" x2="20" y2="3"></line>
+      <line x1="1" y1="14" x2="7" y2="14"></line>
+      <line x1="9" y1="8" x2="15" y2="8"></line>
+      <line x1="17" y1="16" x2="23" y2="16"></line>
+    </svg>
+  `;
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSettingsPanel();
   });
 
   const label = document.createElement('span');
   label.className = 'toolbar-label';
   label.textContent = 'Hover Copy';
 
-  leftSec.appendChild(histBtn);
+  const actions = document.createElement('div');
+  actions.className = 'toolbar-actions';
+  actions.appendChild(histBtn);
+  actions.appendChild(settingsBtn);
+
+  leftSec.appendChild(actions);
   leftSec.appendChild(label);
 
   const switchLabel = document.createElement('label');
@@ -897,6 +1091,86 @@ function showToolbar() {
   dropdown.id = 'history-dropdown';
   dropdown.className = 'history-dropdown';
 
+  const settingsPanel = document.createElement('div');
+  settingsPanel.id = 'settings-panel';
+  settingsPanel.className = 'settings-panel';
+  settingsPanel.innerHTML = `
+    <div class="settings-title">
+      <span>Quick Settings</span>
+    </div>
+    <div class="settings-stack">
+      <section class="settings-block">
+        <h3 class="settings-block-title">Copy Format</h3>
+        <label class="settings-option">
+          <input type="radio" name="inline-copy-format" value="plain">
+          <span class="settings-option-copy">
+            <strong>Plain Text</strong>
+            <span>Copy the visible text as-is.</span>
+          </span>
+        </label>
+        <label class="settings-option">
+          <input type="radio" name="inline-copy-format" value="markdown">
+          <span class="settings-option-copy">
+            <strong>Markdown</strong>
+            <span>Preserve headings, links, and emphasis.</span>
+          </span>
+        </label>
+        <label class="settings-option">
+          <input type="radio" name="inline-copy-format" value="html">
+          <span class="settings-option-copy">
+            <strong>HTML Markup</strong>
+            <span>Capture the underlying HTML structure.</span>
+          </span>
+        </label>
+        <label class="settings-option">
+          <input type="radio" name="inline-copy-format" value="source">
+          <span class="settings-option-copy">
+            <strong>Append Page URL</strong>
+            <span>Include a source link with the copied text.</span>
+          </span>
+        </label>
+      </section>
+      <section class="settings-block">
+        <h3 class="settings-block-title">Extraction</h3>
+        <div class="settings-inline-row">
+          <div class="settings-inline-label">
+            <strong>Clean Code Blocks</strong>
+            <span>Strip line numbers from detected code snippets.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="inline-clean-code-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-inline-label">
+          <strong>Regex Mode</strong>
+          <span>Extract only matching values from the copied selection.</span>
+        </div>
+        <select id="inline-regex-mode" class="settings-select">
+          <option value="none">None (Copy Full Selection)</option>
+          <option value="email">Extract Email Addresses</option>
+          <option value="url">Extract URLs / Links</option>
+          <option value="ip">Extract IP Addresses</option>
+          <option value="uuid">Extract UUIDs</option>
+          <option value="custom">Custom RegExp Pattern</option>
+        </select>
+        <div id="inline-custom-regex-container" class="settings-custom-regex">
+          <input type="text" id="inline-custom-regex-input" class="settings-input" placeholder="e.g. [A-Z]+[0-9]+">
+          <div class="settings-inline-row">
+            <div class="settings-inline-label">
+              <strong>Fallback on No Match</strong>
+              <span>Keep the original copied text if nothing matches.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="inline-regex-fallback-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+
   shadowRoot.appendChild(styleTag);
   shadowRoot.appendChild(highlightContainer);
   shadowRoot.appendChild(container);
@@ -905,8 +1179,10 @@ function showToolbar() {
   shadowRoot.appendChild(promptBox);
   shadowRoot.appendChild(floatingBadge);
   shadowRoot.appendChild(dropdown);
+  shadowRoot.appendChild(settingsPanel);
 
   document.body.appendChild(shadowRootHost);
+  initializeInlineSettingsPanel();
 }
 
 // Triggers slide-out animation on toolbar and removes it from DOM after animation completes
@@ -962,9 +1238,9 @@ function toggleHistoryDropdown() {
   const isOpen = dropdown.style.display === 'flex';
   
   if (isOpen) {
-    dropdown.style.display = 'none';
-    histBtn.classList.remove('active');
+    closeHistoryDropdown();
   } else {
+    closeSettingsPanel();
     chrome.storage.local.get("copyHistory", (res) => {
       const history = res.copyHistory || [];
       renderHistoryItems(history);
@@ -1022,14 +1298,121 @@ function renderHistoryItems(history) {
         setTimeout(() => {
           item.classList.remove('success');
           item.textContent = text;
-          dropdown.style.display = 'none';
-          const histBtn = shadowRoot.querySelector('#history-toggle-btn');
-          if (histBtn) histBtn.classList.remove('active');
+          closeHistoryDropdown();
         }, 800);
       });
     });
     dropdown.appendChild(item);
   });
+}
+
+function closeHistoryDropdown() {
+  if (!shadowRoot) return;
+  const dropdown = shadowRoot.querySelector('#history-dropdown');
+  const histBtn = shadowRoot.querySelector('#history-toggle-btn');
+  if (dropdown) dropdown.style.display = 'none';
+  if (histBtn) histBtn.classList.remove('active');
+}
+
+function closeSettingsPanel() {
+  if (!shadowRoot) return;
+  const panel = shadowRoot.querySelector('#settings-panel');
+  const settingsBtn = shadowRoot.querySelector('#settings-toggle-btn');
+  if (panel) panel.style.display = 'none';
+  if (settingsBtn) settingsBtn.classList.remove('active');
+}
+
+function toggleSettingsPanel() {
+  if (!shadowRoot) return;
+  const panel = shadowRoot.querySelector('#settings-panel');
+  const settingsBtn = shadowRoot.querySelector('#settings-toggle-btn');
+  if (!panel || !settingsBtn) return;
+
+  const isOpen = panel.style.display === 'flex';
+  if (isOpen) {
+    closeSettingsPanel();
+    return;
+  }
+
+  closeHistoryDropdown();
+  syncInlineSettingsUI();
+  panel.style.display = 'flex';
+  settingsBtn.classList.add('active');
+}
+
+function updateInlineCustomRegexVisibility(value) {
+  if (!shadowRoot) return;
+  const container = shadowRoot.querySelector('#inline-custom-regex-container');
+  if (!container) return;
+  container.style.display = value === 'custom' ? 'flex' : 'none';
+}
+
+function syncInlineSettingsUI() {
+  if (!shadowRoot) return;
+
+  const formatInputs = shadowRoot.querySelectorAll('input[name="inline-copy-format"]');
+  formatInputs.forEach((input) => {
+    input.checked = input.value === (settings.copyFormat || 'plain');
+  });
+
+  const cleanCodeToggle = shadowRoot.querySelector('#inline-clean-code-toggle');
+  if (cleanCodeToggle) cleanCodeToggle.checked = settings.cleanCodeBlocks ?? true;
+
+  const regexModeSelect = shadowRoot.querySelector('#inline-regex-mode');
+  if (regexModeSelect) regexModeSelect.value = settings.regexMode || 'none';
+
+  const customRegexInput = shadowRoot.querySelector('#inline-custom-regex-input');
+  if (customRegexInput) customRegexInput.value = settings.customRegexPattern || '';
+
+  const fallbackToggle = shadowRoot.querySelector('#inline-regex-fallback-toggle');
+  if (fallbackToggle) fallbackToggle.checked = settings.regexFallback ?? true;
+
+  updateInlineCustomRegexVisibility(settings.regexMode || 'none');
+}
+
+function initializeInlineSettingsPanel() {
+  if (!shadowRoot) return;
+
+  const formatInputs = shadowRoot.querySelectorAll('input[name="inline-copy-format"]');
+  formatInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      if (input.checked) {
+        chrome.storage.local.set({ copyFormat: input.value });
+      }
+    });
+  });
+
+  const cleanCodeToggle = shadowRoot.querySelector('#inline-clean-code-toggle');
+  if (cleanCodeToggle) {
+    cleanCodeToggle.addEventListener('change', () => {
+      chrome.storage.local.set({ cleanCodeBlocks: cleanCodeToggle.checked });
+    });
+  }
+
+  const regexModeSelect = shadowRoot.querySelector('#inline-regex-mode');
+  if (regexModeSelect) {
+    regexModeSelect.addEventListener('change', () => {
+      const value = regexModeSelect.value;
+      chrome.storage.local.set({ regexMode: value });
+      updateInlineCustomRegexVisibility(value);
+    });
+  }
+
+  const customRegexInput = shadowRoot.querySelector('#inline-custom-regex-input');
+  if (customRegexInput) {
+    customRegexInput.addEventListener('input', () => {
+      chrome.storage.local.set({ customRegexPattern: customRegexInput.value });
+    });
+  }
+
+  const fallbackToggle = shadowRoot.querySelector('#inline-regex-fallback-toggle');
+  if (fallbackToggle) {
+    fallbackToggle.addEventListener('change', () => {
+      chrome.storage.local.set({ regexFallback: fallbackToggle.checked });
+    });
+  }
+
+  syncInlineSettingsUI();
 }
 
 // Formats elements to standard Markdown layouts
@@ -1173,9 +1556,10 @@ function handleCopyAction() {
 
 // Load all configurations from Chrome storage on initialization
 chrome.storage.local.get(
-  ["hoverEnabled", "cleanCodeBlocks", "regexMode", "customRegexPattern", "regexFallback", "defaultAiPlatform"],
+  ["hoverEnabled", "copyFormat", "cleanCodeBlocks", "regexMode", "customRegexPattern", "regexFallback", "defaultAiPlatform"],
   (res) => {
     hoverEnabled = res.hoverEnabled ?? false;
+    settings.copyFormat = res.copyFormat || 'plain';
     settings.cleanCodeBlocks = res.cleanCodeBlocks ?? true;
     settings.regexMode = res.regexMode ?? 'none';
     settings.customRegexPattern = res.customRegexPattern ?? '';
@@ -1205,6 +1589,8 @@ chrome.storage.onChanged.addListener((changes) => {
       settings[key] = changes[key].newValue;
     }
   }
+
+  syncInlineSettingsUI();
 });
 
 /**
@@ -1703,28 +2089,6 @@ window.addEventListener("keydown", (e) => {
     }
   }
 
-  // 7. OCR active element instantly with standard O key
-  if (hoverEnabled && (e.key === 'O' || e.key === 'o') && !e.ctrlKey && !e.metaKey) {
-    const rawElement = findTextElementUnderPoint(lastMouseX, lastMouseY);
-    if (rawElement) {
-      let el = getValidTarget(rawElement);
-      if (!el) el = rawElement;
-      
-      if (el) {
-        e.preventDefault();
-        e.stopPropagation();
-        currentTarget = el;
-        isOcrTarget = true;
-        const rects = [el.getBoundingClientRect()];
-        drawHighlight(rects, 'OCR');
-        positionCopyButton(rects, 'OCR');
-        updateActiveRects(rects);
-        updateModeBadge('OCR');
-        triggerOcrCapture();
-        return;
-      }
-    }
-  }
 }, true);
 
 window.addEventListener("keyup", (e) => {
@@ -1751,15 +2115,20 @@ window.addEventListener("keyup", (e) => {
   }
 }, true);
 
-// Close history dropdown or prompt box when clicking outside of it on the page
+// Close floating panels when clicking outside of them on the page
 document.addEventListener("click", (e) => {
   if (shadowRoot) {
     const dropdown = shadowRoot.querySelector('#history-dropdown');
-    const histBtn = shadowRoot.querySelector('#history-toggle-btn');
     if (dropdown && dropdown.style.display === 'flex') {
       if (e.target !== shadowRootHost) {
-        dropdown.style.display = 'none';
-        if (histBtn) histBtn.classList.remove('active');
+        closeHistoryDropdown();
+      }
+    }
+
+    const settingsPanel = shadowRoot.querySelector('#settings-panel');
+    if (settingsPanel && settingsPanel.style.display === 'flex') {
+      if (e.target !== shadowRootHost) {
+        closeSettingsPanel();
       }
     }
 
